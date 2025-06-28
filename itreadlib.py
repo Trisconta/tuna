@@ -1,0 +1,48 @@
+# pylint: disable=missing-function-docstring
+
+""" itunes music reader
+"""
+
+import plistlib
+
+DEF_IT_XML_LIB = "iTunes Music Library.xml"
+
+
+def read_itunes_library_xml(xml_path=DEF_IT_XML_LIB):
+    """ Returns the triplet: (plist, tracks, dct) """
+    with open(xml_path, 'rb') as fp:
+        plist = plistlib.load(fp)
+    dct = {}
+    tracks = plist.get('Tracks', {})
+    idx = 0
+    for track_id, track_info in tracks.items():
+        if track_info.get('Genre') != 'Podcast':
+            continue
+        idx += 1
+        name = track_info.get('Name', 'Unknown Title')
+        artist = track_info.get('Artist', 'Unknown Artist')
+        play_count = track_info.get('Play Count', 0)
+        last_played = track_info.get('Play Date UTC', 'Never')
+        #print(f"#  {name} by {artist}")
+        #print(f"   Play Count: {play_count}")
+        #print(f"   Last Played: {last_played}\n")
+        dct[idx] = (track_id, track_info)
+    return (plist, tracks, dct)
+
+def resume_art(plist):
+    tracks = plist.get("Tracks", {})
+    arts = {}
+    for track_id, track_info in tracks.items():
+        artist = track_info.get("Artist", "@")
+        if artist in arts:
+            arts[artist].append(track_id)
+        else:
+            arts[artist] = [track_id]
+    return (plist, tracks, arts)
+
+
+
+# Example usage
+# 
+#	read_itunes_library_xml("C:/Users/<your_username>/Music/iTunes/iTunes Music Library.xml")
+
