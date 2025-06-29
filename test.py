@@ -31,7 +31,7 @@ def main_test(path):
 
 def da_show(tunes):
     for num, item in enumerate(tunes.alist, 1):
-        print(f"{num:<4}", item)
+        print(item)
 
 
 main()
