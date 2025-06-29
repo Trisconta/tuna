@@ -24,12 +24,14 @@ import plistlib
 
 class ItLib:
     """ IT Library class. """
+    date_format = "%Y-%m-%d"
     _unknown = "-"
 
     def __init__(self, data=None, a_filter="P", name="i"):
         self.name = name
         self._filter = a_filter
         self._x_path = ""
+        self._show_trackid = False
         self._simple = {
             "plist": {},
             "tracks": {},
@@ -144,6 +146,56 @@ class ItLib:
             return ["track-to-index", lst]
         return []
 
+    def last_n(self, num:int, order="A", pretty=True, criteria="a") -> list:
+        """ Return the last 'num' entries, ordered by:
+		'A': access (last played, then index n reverse order); 'a' does not reverse
+		'i': by index (ascending), 'I' descending;
+		--
+		'a': show all; 'b' show only the ones played
+	Pretty print is achieved by using pretty=True
+        """
+        assert len(order) <= 1, "order?"
+        if not order:
+            order = "I"
+        if num < 0:
+            return []
+        assert int(num) >= 0, "simple_last_n()"
+        if criteria in "a":
+            lst = [
+                self.resume(idx) for idx in sorted(self.get_simple("resume"))[-num:]
+            ]
+        elif criteria in "b":
+            lst = [
+                self.resume(idx) for idx in sorted(self.get_simple("resume"))[-num:]
+                if self.resume(idx)[-2] > 0
+            ]
+        if order in "Ii":
+            yet = lst if order == "i" else lst[::-1]
+            if pretty:
+                return [self.my_resume(item) for item in yet]
+            return yet
+        do_reverse = order in "AI"
+        yet = sorted(
+            lst,
+            key=lambda x: int(x[0]) if x[-1] is None else int(my_timestamp(x[-1])),
+            reverse=True,
+        )
+        if pretty:
+            return [self.my_resume(item) for item in yet]
+        return yet
+
+    def my_resume(self, item:tuple):
+        """ Redirecting the pretty display into the general resume_function(). """
+        if self._show_trackid:
+            idx = int(item[0])
+            track_id = self.track(idx)[0]
+            lst = [track_id] + item[1:]
+            tup = tuple(lst)
+        else:
+            tup = item
+        astr = resume_function(tup)
+        return astr
+
 
 def clean_name(name, alt="."):
     if isinstance(name, str):
@@ -196,6 +248,6 @@ def resume_function(tup:tuple):
     if len(s_shown) >= 20:
         s_shown += "[...]"
     assert plays >= 0, "Non-negative number"
-    s_date = "" if dttm is None else dttm.strftime("%Y-%d-%m")
+    s_date = "" if dttm is None else dttm.strftime(ItLib.date_format)
     astr = f"{s_idx:>9} {s_date:>11}. {s_name} / {s_shown}"
     return astr
