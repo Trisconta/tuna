@@ -21,9 +21,11 @@ def main_test(path):
         if not k.startswith('_') and not callable(getattr(AClass, k))
     ]
     assert public_class_vars, "No public var?"
-    print("Reading xml:", path)
+    print("# Reading xml:", path)
+    # Configure to display all tracks played
+    tuna.itresume.ItResume.configure_lasts("b")
     tunes = tuna.itresume.ItResume(xml_path=path)
-    assert len(tunes.alist) == 100, "Expected 100 elements"
+    assert len(tunes.alist) > 0, "Expected at least one element!"
     da_show(tunes)
     return True
 
