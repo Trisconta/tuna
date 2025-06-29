@@ -18,7 +18,6 @@ To test:
 # pylint: disable=missing-function-docstring
 
 import datetime
-#from datetime import timezone
 import plistlib
 
 
@@ -138,7 +137,7 @@ class ItLib:
         """ Returns an empty list if all ok. """
         trk = self._simple["track-to-index"]
         lst = list(
-            set([len(trk[ala]) for ala in trk])
+            set([len(item) for key, item in trk.items()])
         )
         if lst != [1]:
             return ["track-to-index", lst]
@@ -150,52 +149,25 @@ def clean_name(name, alt="."):
         return ''.join(achr if ord(achr) < 127 else alt for achr in name)
     return name
 
+
 def my_datetime(dttm):
     if dttm is None or stamp_is_zero(dttm):
         return datetime_zero()
     return dttm
 
+
 def my_timestamp(dttm):
     return my_datetime(dttm).timestamp()
 
+
 def datetime_zero():
-    #dttm = datetime.datetime.fromtimestamp(0, tz=timezone.utc)
     dttm = datetime.datetime.fromtimestamp(0)
     return dttm
 
-def stamp_diff(t1, t0):
-    return t1.timestamp() - t0.timestamp()
 
-def stamp_is_zero(t0):
-    return stamp_diff(t0, datetime_zero()) < 86400
+def stamp_diff(t_1, t_0):
+    return t_1.timestamp() - t_0.timestamp()
 
-def simple_last_n(tunes, num:int):
-    """ Return the last 'num' entries at 'tunes'. """
-    # tunes = itlib.ItLib(); tunes.load("itunes.xml")
-    if num < 0:
-        return []
-    assert int(num) >= 0, "simple_last_n()"
-    lst = [
-        resume_function(tunes.resume(idx)) for idx in sorted(tunes.get_simple("resume"))[-num:]
-    ]
-    # To sort by last play, use:
-    #	for item in sorted(lst, key=lambda x: int(x[0]) if x[-1] is None else itlib.my_timestamp(x[-1]), reverse=True): print(item)
-    #
-    # Now just return the list containing, e.g.
-    #
-    #	('24419', 'Filmes que me deram cabo da vida.', 'R.dio Comercial | Ricardo Ara.jo Pereira', 1, datetime.datetime(2025, 6, 28, 15, 7, 36))
-    #	...
-    #
-    return lst
 
-def resume_function(tup:tuple):
-    """ Returns a simple readable string from the n fields at said 'resume'. """
-    #print("# resume:", tup)
-    s_idx, s_name, s_what, plays, dttm = tup
-    s_shown = f"{s_what.replace('/', '~'):.20}"
-    if len(s_shown) >= 20:
-        s_shown += "[...]"
-    assert plays >= 0, "Non-negative number"
-    s_date = "" if dttm is None else dttm.strftime("%Y-%d-%m")
-    astr = f"{s_idx:>9} {s_date:>11}. {s_name} / {s_shown}"
-    return astr
+def stamp_is_zero(t_0):
+    return stamp_diff(t_0, datetime_zero()) < 86400
